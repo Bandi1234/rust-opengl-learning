@@ -1,3 +1,4 @@
+
 use gl33 as gl;
 use gl33::global_loader as gl_loader;
 
@@ -13,6 +14,18 @@ pub struct VPositionTexture {
     pub z : f32,
     pub u : f32,
     pub v : f32
+}
+
+#[derive(PartialEq)]
+pub struct VPositionTextureNormal {
+    pub x : f32,
+    pub y : f32,
+    pub z : f32,
+    pub u : f32,
+    pub v : f32,
+    pub n_x : f32,
+    pub n_y : f32,
+    pub n_z : f32
 }
 
 pub struct VertexBuffer {

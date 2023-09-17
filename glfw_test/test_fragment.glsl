@@ -10,7 +10,7 @@ in float v_z;
 void main() {
     // vec2 uv = gl_FragCoord.xy / screen_size;
     // final_color = vec4(uv.x, uv.y, blue_extra, 1.0);
-    vec4 tex_color = texture(samp, v_tex_coords);
+    vec4 tex_color = texture(samp, vec2(v_tex_coords.x, v_tex_coords.y));
     final_color = vec4(tex_color.r, tex_color.g, tex_color.b, tex_color.a);
-    final_color = vec4(0.2 * v_z, 0.3 * v_z, 0.7 * v_z, 1.0);
+    //final_color = vec4(tex_color.r * v_z, tex_color.g * v_z, tex_color.b * v_z, 1.0);
 }

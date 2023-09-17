@@ -1,5 +1,5 @@
 use gl33 as gl;
-use gl33::{global_loader as gl_loader};
+use gl33::global_loader as gl_loader;
 
 use crate::{VertexArray, IndexBuffer, Shader};
 

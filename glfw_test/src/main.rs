@@ -6,13 +6,17 @@ extern crate image;
 
 mod rendering;
 
+use std::collections::HashMap;
+
 use gl33 as gl;
 use gl33::global_loader as gl_loader;
 use glfw::{Action, Context, Key};
+use rendering::vertex_buffer::VPositionTextureNormal;
 
 pub use crate::rendering::{index_buffer::IndexBuffer, shader::Shader, vertex_buffer::{VertexBuffer, VPositionTexture, VPosition}, vertex_buffer_layout::VertexBufferLayout, vertex_array::VertexArray, renderer, texture_2d::Texture2D};
 
 // TODO glfw code abstraction + extra events (errors, joystick, etc)
+// TODO proper asset managmenet (custom formats, caching, folder structure)
 // TODO separate input system from glfw
 // TODO fbx import
 // TODO combine uniforms shaders and textures into materials
@@ -57,7 +61,7 @@ fn main() {
 
     let mut shader;
 
-    let (vertex_array, index_buffer) = read_obj("monke.obj");
+    let (vertex_array, index_buffer) = parse_obj_new("textured_monke.obj");
     vertex_array.bind();
     index_buffer.bind();
 
@@ -65,7 +69,7 @@ fn main() {
     shader.bind();
 
     let texture = Texture2D::new(
-        "image1.png",
+        "textured_monke.png",
         gl::GL_RGBA8,
         gl::GL_RGBA,
         gl::GL_UNSIGNED_BYTE,
@@ -90,6 +94,11 @@ fn main() {
             (r *  std::f32::consts::PI) / 180.0,
             &nalgebra_glm::vec3(0.0, 1.0, 0.0)
         );
+        let model = nalgebra_glm::translate(
+            &model,
+            &nalgebra_glm::vec3(0.0, 0.0, 0.0)
+        );
+        
         let view = nalgebra_glm::look_at(
             &nalgebra_glm::vec3(4.0, 3.0, 3.0),
             &nalgebra_glm::vec3(0.0, 0.0, 0.0),
@@ -182,60 +191,85 @@ fn toggle_fullscreen(is_fullscreen : &mut bool, window : &mut glfw::Window, moni
     }
 }
 
-fn read_obj(path : &str) -> (VertexArray, IndexBuffer) {
+fn parse_obj_new(path : &str) -> (VertexArray, IndexBuffer) {
     let file = std::fs::read_to_string(path).expect("File not found");
-    let mut vertices = Vec::<VPositionTexture>::new();
+    
+    let mut positions = Vec::<(f32, f32, f32)>::new();
+    let mut normals = Vec::<(f32, f32, f32)>::new();
+    let mut tex_coords = Vec::<(f32, f32)>::new();
+
+    let mut vertices = Vec::<VPositionTextureNormal>::new();
+    let mut vert_map = HashMap::<(usize, usize, usize), usize>::new();
     let mut indices = Vec::<u32>::new();
-    let mut text_coords = Vec::<(f32, f32)>::new();
-    for line in file.split('\n') {
+
+    let file = file.split('\n');
+    for line in file {
         let mut line = line.split(' ');
         let entry_type = line.next().unwrap();
-        if entry_type == "v" {
-            // Vertex
-            let x : f32 = line.next().unwrap().parse::<f32>().unwrap();
-            let y : f32 = line.next().unwrap().parse::<f32>().unwrap();
-            let z : f32 = line.next().unwrap().parse::<f32>().unwrap();
-            vertices.push(VPositionTexture {x, y, z, u : 0.0, v : 0.0});
-            continue;
-        }
-        if entry_type == "vt" {
-            // Texture coords
-            let u : f32 = line.next().unwrap().parse().unwrap();
-            let v : f32 = line.next().unwrap().parse().unwrap();
-            text_coords.push((u, v));
-            continue;
-        }
-        if entry_type == "vn" {
-            // Normal vectors
-
-            continue;
-        }
-        if entry_type == "f" {
-            // Face
-            for _ in 0..3 {
-                let mut index = line.next().unwrap().split('/');
-                let vertex : u32 = index.next().unwrap().parse().unwrap();
-                let texture : u32 = index.next().unwrap().parse().unwrap();
-                let (u, v) = text_coords[texture as usize - 1];
-                vertices[vertex as usize - 1] = VPositionTexture {
-                    x : vertices[vertex as usize - 1].x,
-                    y : vertices[vertex as usize - 1].y,
-                    z : vertices[vertex as usize - 1].z,
-                    u,
-                    v
-                };
-                indices.push(vertex);
+        match entry_type {
+            "v" => {
+                // Positions
+                let x : f32 = line.next().unwrap().parse().unwrap();
+                let y : f32 = line.next().unwrap().parse().unwrap();
+                let z : f32 = line.next().unwrap().parse().unwrap();
+                positions.push((x, y, z));
             }
-            continue;
+
+            "vn" => {
+                // Normals
+                let x : f32 = line.next().unwrap().parse().unwrap();
+                let y : f32 = line.next().unwrap().parse().unwrap();
+                let z : f32 = line.next().unwrap().parse().unwrap();
+                normals.push((x, y, z));
+            }
+
+            "vt" => {
+                let u : f32 = line.next().unwrap().parse().unwrap();
+                let v : f32 = line.next().unwrap().parse().unwrap();
+                tex_coords.push((u, v));
+            }
+
+            "f" => {
+                // A face and its vertices
+                for _ in 0..3 {
+                    let mut vert_info = line.next().unwrap().split('/');
+
+                    let pos_index = vert_info.next().unwrap().parse::<usize>().unwrap() - 1;
+                    let tex_coord_index = vert_info.next().unwrap().parse::<usize>().unwrap() - 1;
+                    let normal_index = vert_info.next().unwrap().parse::<usize>().unwrap() - 1;
+
+                    let (x, y, z) = positions[pos_index];
+                    let (u, v) = tex_coords[tex_coord_index];
+                    let (n_x, n_y, n_z) = normals[normal_index];
+                    
+                    let key = (pos_index, tex_coord_index, normal_index);
+
+                    if vert_map.contains_key(&key) {
+                        indices.push(vert_map[&key] as u32);
+                    } else {
+                        let vert = VPositionTextureNormal{x, y, z, u, v, n_x, n_y, n_z};
+                        vertices.push(vert);
+                        indices.push((vertices.len() - 1) as u32);
+                        vert_map.insert(key, vertices.len() - 1);
+                    }
+                }
+            }
+
+            _ => {
+                // Other
+                continue;
+            }
         }
     }
-    let vbo = VertexBuffer::new::<VPositionTexture>(
+
+    let vbo = VertexBuffer::new::<VPositionTextureNormal>(
         vertices,
         false
     );
     let mut layout = VertexBufferLayout::new();
     layout.push(gl::GL_FLOAT, 3, false);
     layout.push(gl::GL_FLOAT, 2, false);
+    layout.push(gl::GL_FLOAT, 3, false);
     let vertex_array = VertexArray::new(vbo, layout);
     vertex_array.bind();
 
