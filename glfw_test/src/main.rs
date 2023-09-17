@@ -16,7 +16,8 @@ use rendering::vertex_buffer::VPositionTextureNormal;
 pub use crate::rendering::{index_buffer::IndexBuffer, shader::Shader, vertex_buffer::{VertexBuffer, VPositionTexture, VPosition}, vertex_buffer_layout::VertexBufferLayout, vertex_array::VertexArray, renderer, texture_2d::Texture2D};
 
 // TODO glfw code abstraction + extra events (errors, joystick, etc)
-// TODO proper asset managmenet (custom formats, caching, folder structure)
+// TODO proper asset management (custom formats, caching, folder structure)
+// TODO fix unstable fps count and unstable screen size
 // TODO separate input system from glfw
 // TODO fbx import
 // TODO combine uniforms shaders and textures into materials
@@ -25,6 +26,7 @@ pub use crate::rendering::{index_buffer::IndexBuffer, shader::Shader, vertex_buf
 // TODO rewrite font / gui renderer here (in rust)
 // TODO frame buffers
 // TODO PBR
+// TODO separate logic (ECS maybe? scripting maybe?)
 
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
@@ -208,24 +210,25 @@ fn parse_obj_new(path : &str) -> (VertexArray, IndexBuffer) {
         let entry_type = line.next().unwrap();
         match entry_type {
             "v" => {
+                
                 // Positions
-                let x : f32 = line.next().unwrap().parse().unwrap();
-                let y : f32 = line.next().unwrap().parse().unwrap();
-                let z : f32 = line.next().unwrap().parse().unwrap();
+                let x : f32 = line.next().unwrap().trim().parse().unwrap();
+                let y : f32 = line.next().unwrap().trim().parse().unwrap();
+                let z : f32 = line.next().unwrap().trim().parse().unwrap();
                 positions.push((x, y, z));
             }
 
             "vn" => {
                 // Normals
-                let x : f32 = line.next().unwrap().parse().unwrap();
-                let y : f32 = line.next().unwrap().parse().unwrap();
-                let z : f32 = line.next().unwrap().parse().unwrap();
+                let x : f32 = line.next().unwrap().trim().parse().unwrap();
+                let y : f32 = line.next().unwrap().trim().parse().unwrap();
+                let z : f32 = line.next().unwrap().trim().parse().unwrap();
                 normals.push((x, y, z));
             }
 
             "vt" => {
-                let u : f32 = line.next().unwrap().parse().unwrap();
-                let v : f32 = line.next().unwrap().parse().unwrap();
+                let u : f32 = line.next().unwrap().trim().parse().unwrap();
+                let v : f32 = line.next().unwrap().trim().parse().unwrap();
                 tex_coords.push((u, v));
             }
 
@@ -234,9 +237,9 @@ fn parse_obj_new(path : &str) -> (VertexArray, IndexBuffer) {
                 for _ in 0..3 {
                     let mut vert_info = line.next().unwrap().split('/');
 
-                    let pos_index = vert_info.next().unwrap().parse::<usize>().unwrap() - 1;
-                    let tex_coord_index = vert_info.next().unwrap().parse::<usize>().unwrap() - 1;
-                    let normal_index = vert_info.next().unwrap().parse::<usize>().unwrap() - 1;
+                    let pos_index = vert_info.next().unwrap().trim().parse::<usize>().unwrap() - 1;
+                    let tex_coord_index = vert_info.next().unwrap().trim().parse::<usize>().unwrap() - 1;
+                    let normal_index = vert_info.next().unwrap().trim().parse::<usize>().unwrap() - 1;
 
                     let (x, y, z) = positions[pos_index];
                     let (u, v) = tex_coords[tex_coord_index];
