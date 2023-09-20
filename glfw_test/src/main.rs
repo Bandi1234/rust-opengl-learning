@@ -10,7 +10,6 @@ mod asset_manager;
 use gl33 as gl;
 use gl33::global_loader as gl_loader;
 use glfw::{Action, Context, Key};
-use rendering::index_buffer;
 
 pub use crate::rendering::{index_buffer::IndexBuffer, shader::Shader, vertex_buffer::{VertexBuffer, VPositionTexture, VPosition}, vertex_buffer_layout::VertexBufferLayout, vertex_array::VertexArray, renderer, texture_2d::Texture2D};
 
@@ -31,15 +30,19 @@ fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
     let mut is_fullscreen: bool = false;
     let monitor: glfw::Monitor = glfw::Monitor::from_primary();
+    let delta = 1.0 / monitor.get_video_mode().unwrap().refresh_rate as f32;
+    let width = monitor.get_video_mode().unwrap().width;
+    let height = monitor.get_video_mode().unwrap().height;
 
     let mut r : f32 = 0.0;
     
     // Create a windowed mode window and its OpenGL context
     let (mut window, events) = glfw
-        .create_window(800, 600, "Hello Rust!", glfw::WindowMode::Windowed)
+        .create_window(width / 2, height / 2, "Hello Rust!", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window.");
 
     // Make the window's context current
+    window.set_pos((width / 4) as i32, (height / 4) as i32);
     window.make_current();
     window.set_key_polling(true);
     window.set_size_polling(true);
@@ -58,12 +61,11 @@ fn main() {
 
     renderer::enable_basic_blending();
 
-    on_resize(800, 600);
+    on_resize((width / 2) as i32, (height / 2) as i32);
 
     let mut shader;
 
-    //let (vertex_array, index_buffer) = asset_manager::parse_obj_new("textured_monke.obj");
-    asset_manager::convert_obj("textured_monke.obj");
+    //asset_manager::convert_obj("textured_monke.obj");
     let (vertex_array, index_buffer) = asset_manager::read_model("asd.asd");
     vertex_array.bind();
     index_buffer.bind();
@@ -82,7 +84,7 @@ fn main() {
 
     // Loop until the user closes the window
     while !window.should_close() {
-        r += 1.0;
+        r += 200.0 * delta;
         if r >= 360.0 {
             r -= 360.0;
         }

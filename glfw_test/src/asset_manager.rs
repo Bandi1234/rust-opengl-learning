@@ -183,7 +183,7 @@ pub fn convert_obj(path : &str) {
     }
     /*let f_name : &str = std::path::Path::new(path).file_name().unwrap().into();
     let f_name = f_name.to_owned();*/
-    std::fs::write("asd.asd", bytes);
+    std::fs::write("asd.asd", bytes).expect("Couldn't write file.");
 }
 
 pub fn read_model(path : &str) -> (VertexArray, IndexBuffer) {
@@ -206,6 +206,7 @@ pub fn read_model(path : &str) -> (VertexArray, IndexBuffer) {
     }
 
     let ind_len = u32::from_be_bytes([bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]]);
+    i+=4;
     let ind_len : usize = ind_len as usize;
 
     for _ in 0..ind_len {
