@@ -14,7 +14,8 @@ use glfw::{Action, Context, Key};
 pub use crate::rendering::{index_buffer::IndexBuffer, shader::Shader, vertex_buffer::{VertexBuffer, VPositionTexture, VPosition}, vertex_buffer_layout::VertexBufferLayout, vertex_array::VertexArray, renderer, texture_2d::Texture2D};
 
 // TODO glfw code abstraction + extra events (errors, joystick, etc)
-// TODO proper asset management (custom formats, caching, folder structure)
+// TODO separate proper asset management (custom formats, caching, folder structure)
+// TODO separate transform logic (kinda fucked rn)
 // TODO fix unstable fps count and unstable screen size
 // TODO separate input system from glfw
 // TODO fbx import
@@ -64,9 +65,11 @@ fn main() {
     on_resize((width / 2) as i32, (height / 2) as i32);
 
     let mut shader;
-
-    //asset_manager::convert_obj("textured_monke.obj");
-    let (vertex_array, index_buffer) = asset_manager::read_model("asd.asd");
+    let start = std::time::Instant::now();
+    //asset_manager::convert_obj("MS_final.obj");
+    let (vertex_array, index_buffer) = asset_manager::read_model("asd.asd"); //1200 ms
+    //let (vertex_array, index_buffer) = asset_manager::parse_obj_new("MS_final.obj"); //5000 ms
+    println!("{} ms elapsed", start.elapsed().as_millis());
     vertex_array.bind();
     index_buffer.bind();
 
@@ -74,7 +77,7 @@ fn main() {
     shader.bind();
 
     let texture = Texture2D::new(
-        "textured_monke.png",
+        "MS_final.png",
         gl::GL_RGBA8,
         gl::GL_RGBA,
         gl::GL_UNSIGNED_BYTE,
@@ -90,19 +93,20 @@ fn main() {
         }
 
         let model = nalgebra_glm::identity();
+        let model = nalgebra_glm::translate(
+            &model,
+            &nalgebra_glm::vec3(0.0, -2.0, 0.0)
+        );
         let model = nalgebra_glm::scale(
             &model,
-            &nalgebra_glm::vec3(2.0, 2.0, 2.0)
+            &nalgebra_glm::vec3(0.1, 0.1, 0.1)
         );
         let model = nalgebra_glm::rotate(
             &model,
             (r *  std::f32::consts::PI) / 180.0,
             &nalgebra_glm::vec3(0.0, 1.0, 0.0)
         );
-        let model = nalgebra_glm::translate(
-            &model,
-            &nalgebra_glm::vec3(0.0, 0.0, 0.0)
-        );
+        
         
         let view = nalgebra_glm::look_at(
             &nalgebra_glm::vec3(4.0, 3.0, 3.0),
