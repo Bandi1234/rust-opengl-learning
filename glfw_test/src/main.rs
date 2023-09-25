@@ -4,8 +4,8 @@ extern crate core;
 extern crate nalgebra_glm;
 extern crate image;
 
-mod rendering;
-mod asset_manager;
+pub mod rendering;
+pub mod asset_manager;
 
 use gl33 as gl;
 use gl33::global_loader as gl_loader;
@@ -64,11 +64,11 @@ fn main() {
 
     on_resize((width / 2) as i32, (height / 2) as i32);
 
+    asset_manager::init();
+
     let mut shader;
     let start = std::time::Instant::now();
-    //asset_manager::convert_obj("MS_final.obj");
-    let (vertex_array, index_buffer) = asset_manager::read_model("asd.asd"); //1200 ms
-    //let (vertex_array, index_buffer) = asset_manager::parse_obj_new("MS_final.obj"); //5000 ms
+    let (vertex_array, index_buffer) = asset_manager::load_model_cached("textured_monke");
     println!("{} ms elapsed", start.elapsed().as_millis());
     vertex_array.bind();
     index_buffer.bind();
@@ -77,7 +77,7 @@ fn main() {
     shader.bind();
 
     let texture = Texture2D::new(
-        "MS_final.png",
+        "textured_monke.png",
         gl::GL_RGBA8,
         gl::GL_RGBA,
         gl::GL_UNSIGNED_BYTE,
