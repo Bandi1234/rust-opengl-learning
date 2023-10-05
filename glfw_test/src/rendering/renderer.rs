@@ -39,4 +39,24 @@ pub fn enable_basic_blending() {
         gl_loader::glBlendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
     }
 }
-    
+
+pub fn on_resize(width: i32, height: i32) {
+    let viewport_x;
+    let viewport_y;
+    let viewport_width;
+    let viewport_height;
+    if width as f64 / height as f64 > (16.0 / 9.0) {
+        // Window wider than widescreen
+        viewport_height = height;
+        viewport_y = 0;
+        viewport_width = (height / 9) * 16;
+        viewport_x = 0 + ((width - viewport_width) / 2);
+    } else {
+        // Window taller than widescreen
+        viewport_width = width;
+        viewport_x = 0;
+        viewport_height = (width / 16) * 9;
+        viewport_y = 0 + ((height - viewport_height) / 2);
+    }
+    set_viewport(viewport_x, viewport_y, viewport_width, viewport_height);
+}
