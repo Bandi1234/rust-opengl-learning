@@ -1,5 +1,6 @@
 use gl33 as gl;
 use gl33::global_loader as gl_loader;
+use crate::asset_manager::image_loader;
 
 pub struct Texture2D {
     renderer_id : u32,
@@ -8,35 +9,29 @@ pub struct Texture2D {
 }
 
 impl Texture2D {
-    pub fn new(path : &str, internal_format : gl::GLenum, format : gl::GLenum, data_type : gl::GLenum, filter : gl::GLenum) -> Self {
+    pub fn new(img : image_loader::ImageResource) -> Self {
         let mut renderer_id = 0;
-        let width;
-        let height;
         unsafe {
-            let img = image::io::Reader::open(path).unwrap().decode().unwrap();
-            width = img.width() as i32;
-            height = img.height() as i32;
-            
             gl_loader::glGenTextures(1, &mut renderer_id);
             gl_loader::glBindTexture(gl::GL_TEXTURE_2D, renderer_id);
     
-            gl_loader::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, filter.0 as i32);
-            gl_loader::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, filter.0 as i32);
+            gl_loader::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, img.min_filter.0 as i32);
+            gl_loader::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, img.mag_filter.0 as i32);
             gl_loader::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE.0 as i32);
             gl_loader::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE.0 as i32);
             gl_loader::glTexImage2D(
                 gl::GL_TEXTURE_2D,
                 0,
-                internal_format.0 as i32,
-                width,
-                height,
+                img.internal_format.0 as i32,
+                img.width,
+                img.height,
                 0,
-                format,
-                data_type,
-                img.flipv().as_bytes().as_ptr().cast()
+                img.format,
+                img.data_type,
+                img.bytes.as_ptr().cast()
             );
         }
-        Texture2D{renderer_id, width, height}
+        Texture2D{renderer_id, width : img.width, height : img.height}
     }
 
     pub fn width(&self) -> i32 {

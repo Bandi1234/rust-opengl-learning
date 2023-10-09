@@ -4,20 +4,11 @@ use std::collections::HashMap;
 
 use gl33 as gl;
 use crate::rendering::{vertex_buffer::VPositionTextureNormal, vertex_buffer::VertexBuffer, vertex_array::VertexArray, vertex_buffer_layout::VertexBufferLayout, index_buffer::IndexBuffer};
-
-const RES : &str = "res/";
-const MODEL : &str = "res/models/";
-const M_CACHE : &str = "res/cache/models";
-
-pub fn init() {
-    check_dir(RES);
-    check_dir(MODEL);
-    check_dir(M_CACHE);
-}
+use crate::asset_manager::utils;
 
 pub fn load_model_raw(name : &str) -> (VertexArray, IndexBuffer) {
-    let raw_path = &(String::from(MODEL) + name + ".obj");
-    if !f_exists(&raw_path) {
+    let raw_path = &(String::from(utils::MODEL) + name + ".obj");
+    if !utils::f_exists(&raw_path) {
         panic!("Raw model (.obj) file does not exist! {}", raw_path);
     }
     let (v, i) = read_obj(&raw_path);
@@ -25,13 +16,13 @@ pub fn load_model_raw(name : &str) -> (VertexArray, IndexBuffer) {
 }
 
 pub fn load_model_cached(name : &str) -> (VertexArray, IndexBuffer) {
-    let raw_path = &(String::from(MODEL) + name + ".obj");
-    let cached_path = &(String::from(M_CACHE) + name + ".mod");
-    if !f_exists(&raw_path) {
+    let raw_path = &(String::from(utils::MODEL) + name + ".obj");
+    let cached_path = &(String::from(utils::M_CACHE) + name + ".mod");
+    if !utils::f_exists(&raw_path) {
         panic!("Raw model (.obj) file does not exist! {}", raw_path);
     }
-    if f_exists(&cached_path) {
-        if f_modif_dur(&raw_path) < f_modif_dur(&cached_path) {
+    if utils::f_exists(&cached_path) {
+        if utils::f_modif_dur(&raw_path) < utils::f_modif_dur(&cached_path) {
             // need to cache
             let (v, i) = read_obj(&raw_path);
             save_model(&cached_path, &v, &i);
@@ -45,20 +36,6 @@ pub fn load_model_cached(name : &str) -> (VertexArray, IndexBuffer) {
         save_model(&cached_path, &v, &i);
         gen_buffer(v, i)
     }
-}
-
-fn check_dir(path : &str) {
-    if !std::path::Path::new(path).exists() {
-        std::fs::DirBuilder::new().recursive(true).create(path).unwrap();
-    }
-}
-
-fn f_exists(path : &str) -> bool {
-    std::path::Path::new(path).exists()
-}
-
-fn f_modif_dur(path : &str) -> u128 {
-    std::fs::File::open(path).unwrap().metadata().unwrap().modified().unwrap().elapsed().unwrap().as_millis()
 }
 
 fn read_model(path : &str) -> (Vec::<VPositionTextureNormal>, Vec::<u32>) {

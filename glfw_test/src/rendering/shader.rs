@@ -8,11 +8,11 @@ pub struct Shader {
 
 // Base functionality
 impl Shader {
-    pub fn new(vertex_file : &str, fragment_file : &str) -> Self {
+    pub fn new(shaders : (Vec<u8>, Vec<u8>)) -> Self {
         let program = gl_loader::glCreateProgram();
 
-        let vertex_shader = Self::compile_shader(gl::GL_VERTEX_SHADER, std::fs::read(vertex_file).expect("File not found!").as_slice());
-        let fragment_shader = Self::compile_shader(gl::GL_FRAGMENT_SHADER, std::fs::read(fragment_file).expect("File not found!").as_slice());
+        let vertex_shader = Self::compile_shader(gl::GL_VERTEX_SHADER, shaders.0.as_slice());
+        let fragment_shader = Self::compile_shader(gl::GL_FRAGMENT_SHADER, shaders.1.as_slice());
 
         gl_loader::glAttachShader(program, vertex_shader);
         gl_loader::glAttachShader(program, fragment_shader);
