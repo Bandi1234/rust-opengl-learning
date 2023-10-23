@@ -3,16 +3,24 @@ extern crate glfw;
 extern crate core;
 extern crate nalgebra_glm;
 extern crate image;
+extern crate serde_json;
+extern crate serde;
 
 pub mod rendering;
 pub mod asset_manager;
 pub mod window;
+pub mod gui;
+pub mod vertex_types;
 
 pub use crate::rendering::{index_buffer::IndexBuffer, shader::Shader, vertex_buffer::{VertexBuffer, VPositionTexture, VPosition}, vertex_buffer_layout::VertexBufferLayout, vertex_array::VertexArray, renderer, texture_2d::Texture2D};
 pub use crate::asset_manager::{utils as assets, model_loader as models, shader_loader as shaders, image_loader as images};
 
 // TODO logging, timers
 // TODO rewrite font / gui renderer here (in rust)
+    // TextBatch (new, begin, draw, end)
+    // Separate vertex type for characters
+    // TextRenderer -> placement logic
+    // Font -> loading and processing data (needs JSON deserialization)
 // TODO separate input system from glfw (thats gonna suck)
 // TODO separate transform logic (kinda fucked rn), will require proper handling of rotations :(((
 // TODO error handling (glfw errors, gl errors, rust errors)
@@ -49,7 +57,7 @@ fn main() {
     let start = std::time::Instant::now();
     let texture = Texture2D::new(images::load_image(
         "textured_monke",
-        images::ImageType::PngRgba,
+        images::ImageType::PngRgba8,
         images::ImageFilter::Nearest,
         images::ImageFilter::Nearest
     ));

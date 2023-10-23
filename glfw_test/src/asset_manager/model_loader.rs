@@ -2,9 +2,9 @@
 use core::panic;
 use std::collections::HashMap;
 
-use gl33 as gl;
-use crate::rendering::{vertex_buffer::VPositionTextureNormal, vertex_buffer::VertexBuffer, vertex_array::VertexArray, vertex_buffer_layout::VertexBufferLayout, index_buffer::IndexBuffer};
+use crate::rendering::{vertex_buffer::VertexBuffer, vertex_array::VertexArray, index_buffer::IndexBuffer};
 use crate::asset_manager::utils;
+use crate::vertex_types::v_position_texture_normal::VPositionTextureNormal;
 
 pub fn load_model_raw(name : &str) -> (VertexArray, IndexBuffer) {
     let raw_path = &(String::from(utils::MODEL) + name + ".obj");
@@ -174,10 +174,7 @@ fn gen_buffer(vertices : Vec::<VPositionTextureNormal>, indices : Vec::<u32>) ->
         vertices,
         false
     );
-    let mut layout = VertexBufferLayout::new();
-    layout.push(gl::GL_FLOAT, 3, false);
-    layout.push(gl::GL_FLOAT, 2, false);
-    layout.push(gl::GL_FLOAT, 3, false);
+    let layout = VPositionTextureNormal::generate_layout();
     let vertex_array = VertexArray::new(vbo, layout);
     vertex_array.bind();
 

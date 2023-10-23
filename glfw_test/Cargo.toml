@@ -10,3 +10,5 @@ gl33 = "0.2.1"
 glfw = "0.52.0"
 image = "0.24.6"
 nalgebra-glm = "0.18.0"
+serde = { version = "1.0.189", features= ["derive"]}
+serde_json = "1.0.107"

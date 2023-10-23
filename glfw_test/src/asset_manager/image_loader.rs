@@ -18,7 +18,8 @@ pub enum ImageFilter {
 }
 
 pub enum ImageType {
-    PngRgba
+    PngRgba8,
+    BmpRgb8
 }
 
 pub fn load_image(name: &str, img_type : ImageType, min : ImageFilter, mag : ImageFilter) -> ImageResource {
@@ -37,7 +38,7 @@ pub fn load_image(name: &str, img_type : ImageType, min : ImageFilter, mag : Ima
         ImageFilter::Nearest => gl::GL_NEAREST
     };
     match img_type {
-        ImageType::PngRgba => {
+        ImageType::PngRgba8 => {
             let img = image::io::Reader::open(String::from(utils::IMG) + name + ".png")
             .expect("File not found!")
             .decode()
@@ -47,6 +48,18 @@ pub fn load_image(name: &str, img_type : ImageType, min : ImageFilter, mag : Ima
             bytes = img.flipv().as_bytes().to_owned();
             internal_format = gl::GL_RGBA8;
             format = gl::GL_RGBA;
+            data_type = gl::GL_UNSIGNED_BYTE;
+        },
+        ImageType::BmpRgb8 => {
+            let img = image::io::Reader::open(String::from(utils::IMG) + name + ".bmp")
+            .expect("File not found!")
+            .decode()
+            .expect("Image decode failed!");
+            width = img.width() as i32;
+            height = img.height() as i32;
+            bytes = img.flipv().as_bytes().to_owned();
+            internal_format = gl::GL_RGB8;
+            format = gl::GL_RGB;
             data_type = gl::GL_UNSIGNED_BYTE;
         }
     }

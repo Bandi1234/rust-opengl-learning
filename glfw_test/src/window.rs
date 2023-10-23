@@ -103,6 +103,8 @@ impl Window {
                     }
                 }
                 glfw::WindowEvent::Size(width, height) => {
+                    self.width = width as u32;
+                    self.height = height as u32;
                     crate::renderer::on_resize(width, height);
                 }
                 _ => {}

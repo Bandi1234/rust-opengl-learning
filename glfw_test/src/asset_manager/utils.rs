@@ -3,6 +3,7 @@ pub const MODEL : &str = "res/models/";
 pub const M_CACHE : &str = "res/cache/models/";
 pub const SHADER : &str = "res/shaders/";
 pub const IMG : &str = "res/images/";
+pub const LAYOUT : &str = "res/layout/";
 
 pub fn init() {
     check_dir(RES);
@@ -10,6 +11,7 @@ pub fn init() {
     check_dir(M_CACHE);
     check_dir(SHADER);
     check_dir(IMG);
+    check_dir(LAYOUT);
 }
 
 pub fn check_dir(path : &str) {
